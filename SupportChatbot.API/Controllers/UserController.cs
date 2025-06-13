@@ -50,7 +50,7 @@ namespace SupportChatbot.API.Controllers
                 var result = await _userService.DeleteUserAsync(userId);
                 if (result)
                 {
-                    return NoContent();
+                    return Ok(new { message = "User deleted successfully." });
                 }
                 return NotFound($"User with ID {userId} not found.");
             }

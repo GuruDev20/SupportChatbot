@@ -1,3 +1,5 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SupportChatbot.API.DTOs;
@@ -20,18 +22,19 @@ namespace SupportChatbot.API.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto loginDto)
         {
-            if (loginDto == null || string.IsNullOrEmpty(loginDto.Email) || string.IsNullOrEmpty(loginDto.Password))
+            try
             {
-                return BadRequest("Invalid login request.");
+                var response = await _authService.LoginAsync(loginDto);
+                return Ok(response);
             }
-
-            var result = await _authService.LoginAsync(loginDto);
-            if (result == null)
+            catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized("Invalid username or password.");
+                return Unauthorized(new { message = ex.Message });
             }
-
-            return Ok(result);
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Login failed", details = ex.Message });
+            }
         }
 
         [HttpPost("refresh")]
@@ -62,17 +65,17 @@ namespace SupportChatbot.API.Controllers
             return Ok("Logged out successfully.");
         }
 
-        [Authorize]
+        [Authorize(Roles = "User,Agent")]
         [HttpGet("me")]
         public async Task<IActionResult> GetCurrentUser()
         {
-            var userId = User.Claims.FirstOrDefault(c => c.Type == "id")?.Value;
-            if (userId == null)
+            var email = User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Email || c.Type == ClaimTypes.Email)?.Value;
+            if (email == null)
             {
                 return Unauthorized("User not authenticated.");
             }
 
-            var user = await _authService.GetUserInfoAsync(userId);
+            var user = await _authService.GetUserInfoAsync(email);
             if (user == null)
             {
                 return NotFound("User not found.");

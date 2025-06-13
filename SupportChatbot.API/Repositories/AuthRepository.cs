@@ -68,6 +68,19 @@ namespace SupportChatbot.API.Repositories
             await _context.SaveChangesAsync();
         }
 
+        public async Task UpdateUserAsync(User user)
+        {
+            var existingUser = await _context.Users.FindAsync(user.Id);
+            if (existingUser == null)
+            {
+                throw new KeyNotFoundException($"User with ID {user.Id} not found.");
+            }
+
+            _context.Entry(existingUser).CurrentValues.SetValues(user);
+            await _context.SaveChangesAsync();
+
+        }
+
         public async Task<bool> ValidateCredentialsAsync(string email, string password)
         {
             if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))

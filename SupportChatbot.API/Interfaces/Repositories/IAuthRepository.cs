@@ -9,5 +9,6 @@ namespace SupportChatbot.API.Interfaces
         public Task SaveRefreshTokenAsync(Guid userId, string refreshToken);
         public Task<string?> GetRefreshTokenAsync(Guid userId);
         public Task RemoveRefreshTokenAsync(Guid userId);
+        public Task UpdateUserAsync(User user);
     }
 }

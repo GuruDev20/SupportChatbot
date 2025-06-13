@@ -79,5 +79,17 @@ namespace SupportChatbot.API.Repositories
             await _context.SaveChangesAsync();
             return existing;
         }
+        
+        public async Task<T> UpdateAsync(T entity)
+        {
+            if (entity == null)
+            {
+                throw new ArgumentNullException(nameof(entity), "Entity cannot be null");
+            }
+
+            _context.Entry(entity).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+            return entity;
+        }
     }
 }

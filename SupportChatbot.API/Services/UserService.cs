@@ -21,12 +21,15 @@ namespace SupportChatbot.API.Services
             {
                 throw new ArgumentException("User ID cannot be empty.", nameof(userId));
             }
-            var user = _userRepository.GetByIdAsync(userId);
+            var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
             {
                 throw new KeyNotFoundException($"User with ID {userId} not found.");
             }
-            await _userRepository.DeleteAsync(userId);
+            user.IsDeleted = true;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            await _userRepository.UpdateAsync(user);
             return true;
         }
 
@@ -36,6 +39,34 @@ namespace SupportChatbot.API.Services
             {
                 throw new ArgumentNullException(nameof(registerUserDto), "Register user DTO cannot be null.");
             }
+
+            var existingUsers = await _userRepository.GetAllAsync();
+
+            var deletedUser = existingUsers
+                .FirstOrDefault(u => u.Email == registerUserDto.Email && u.IsDeleted);
+
+            var activeUser = existingUsers
+                .FirstOrDefault(u => u.Email == registerUserDto.Email && !u.IsDeleted);
+
+            if (activeUser != null)
+            {
+                throw new InvalidOperationException("A user with this email already exists.");
+            }
+
+            if (deletedUser != null)
+            {
+                deletedUser.IsDeleted = false;
+                deletedUser.Username = registerUserDto.Username;
+                deletedUser.PasswordHash = BCrypt.Net.BCrypt.HashPassword(registerUserDto.Password);
+                deletedUser.ProfilePictureUrl = registerUserDto.ProfilePictureUrl;
+                deletedUser.Role = registerUserDto.Role ?? "User";
+                deletedUser.UpdatedAt = DateTime.UtcNow;
+
+                await _userRepository.UpdateAsync(deletedUser.Id, deletedUser);
+
+                return _mapper.Map<UserResponseDto>(deletedUser);
+            }
+
             var user = new User
             {
                 Username = registerUserDto.Username,
@@ -44,9 +75,11 @@ namespace SupportChatbot.API.Services
                 ProfilePictureUrl = registerUserDto.ProfilePictureUrl,
                 Role = registerUserDto.Role ?? "User"
             };
+
             await _userRepository.AddAsync(user);
             return _mapper.Map<UserResponseDto>(user);
         }
+
 
         public async Task<UserResponseDto?> UpdateUserAsync(Guid userId, UpdateUserDto updateUserDto)
         {

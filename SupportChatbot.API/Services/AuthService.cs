@@ -15,13 +15,13 @@ namespace SupportChatbot.API.Services
             _tokenService = tokenService;
         }
 
-        public async Task<UserInfoDto> GetUserInfoAsync(string userId)
+        public async Task<UserInfoDto> GetUserInfoAsync(string email)
         {
-            if (!Guid.TryParse(userId, out var userGuid))
+            if (string.IsNullOrEmpty(email))
             {
-                throw new ArgumentException("Invalid user ID format.", nameof(userId));
+                throw new ArgumentException("Email cannot be null or empty.", nameof(email));
             }
-            var user = await _authRepository.GetUserbyEmailAsync(userId);
+            var user = await _authRepository.GetUserbyEmailAsync(email);
             if (user == null)
             {
                 throw new UnauthorizedAccessException("User not found.");
@@ -43,16 +43,24 @@ namespace SupportChatbot.API.Services
             {
                 throw new UnauthorizedAccessException("Invalid email or password.");
             }
+            if(user.IsDeleted)
+            {
+                throw new UnauthorizedAccessException("User account is deleted.");
+            }
             var passwordValid = BCrypt.Net.BCrypt.Verify(loginRequest.Password, user.PasswordHash);
             if (!passwordValid)
             {
-                throw new UnauthorizedAccessException("Invalid email or password.");
+                return null!;
             }
+            user.IsActive = true;
+            user.UpdatedAt = DateTime.UtcNow;
+            await _authRepository.UpdateUserAsync(user);
             var accessToken = _tokenService.GenerateAccessToken(user);
             var refreshToken = _tokenService.GenerateRefreshToken();
             await _authRepository.SaveRefreshTokenAsync(user.Id, refreshToken);
             return new LoginResponseDto
             {
+                UserId = user.Id,
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
                 AccessTokenExpiration = DateTime.UtcNow.AddMinutes(60)

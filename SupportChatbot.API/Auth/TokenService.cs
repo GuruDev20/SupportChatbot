@@ -21,7 +21,7 @@ namespace SupportChatbot.API.Services
         public string GenerateAccessToken(User user)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Secret"]!);
+            var key = Encoding.UTF8.GetBytes(_configuration["JwtSettings:Secret"]!);
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
