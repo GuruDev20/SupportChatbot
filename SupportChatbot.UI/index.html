@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Chat Support</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.10/signalr.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div id="loginSection">
+            <h2>Login</h2>
+            <input type="email" id="email" placeholder="Email" required />
+            <input type="password" id="password" placeholder="Password" required />
+            <button id="loginBtn">Login</button>
+            <p id="loginError" class="error"></p>
+        </div>
+
+        <div id="dashboard" style="display:none;">
+            <h2 id="welcomeText"></h2>
+            <div id="userUI" style="display:none;">
+                <button id="startChatBtn">Start Conversation</button>
+            </div>
+            <div id="agentUI" style="display:none;">
+                <h3>Incoming Chats</h3>
+                <div id="incomingRequests"></div>
+            </div>
+        </div>
+
+        <div id="chatSection" style="display:none;">
+            <h3>Chat</h3>
+            <div id="chatBox"></div>
+            <input id="messageInput" placeholder="Type a message" />
+            <input type="file" id="fileInput" />
+            <button id="sendBtn">Send</button>
+            <button id="endChatBtn">End Conversation</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

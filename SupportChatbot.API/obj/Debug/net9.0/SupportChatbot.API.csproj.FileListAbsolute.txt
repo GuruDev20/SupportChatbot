@@ -10,6 +10,7 @@
 /Users/dev/Desktop/Intern/Projects/SupportChatbot/SupportChatbot.API/bin/Debug/net9.0/AspNetCoreRateLimit.dll
 /Users/dev/Desktop/Intern/Projects/SupportChatbot/SupportChatbot.API/bin/Debug/net9.0/AutoMapper.dll
 /Users/dev/Desktop/Intern/Projects/SupportChatbot/SupportChatbot.API/bin/Debug/net9.0/AutoMapper.Extensions.Microsoft.DependencyInjection.dll
+/Users/dev/Desktop/Intern/Projects/SupportChatbot/SupportChatbot.API/bin/Debug/net9.0/BCrypt.Net-Next.dll
 /Users/dev/Desktop/Intern/Projects/SupportChatbot/SupportChatbot.API/bin/Debug/net9.0/FluentValidation.dll
 /Users/dev/Desktop/Intern/Projects/SupportChatbot/SupportChatbot.API/bin/Debug/net9.0/FluentValidation.AspNetCore.dll
 /Users/dev/Desktop/Intern/Projects/SupportChatbot/SupportChatbot.API/bin/Debug/net9.0/FluentValidation.DependencyInjectionExtensions.dll
@@ -155,4 +156,3 @@
 /Users/dev/Desktop/Intern/Projects/SupportChatbot/SupportChatbot.API/obj/Debug/net9.0/SupportChatbot.API.pdb
 /Users/dev/Desktop/Intern/Projects/SupportChatbot/SupportChatbot.API/obj/Debug/net9.0/SupportChatbot.API.genruntimeconfig.cache
 /Users/dev/Desktop/Intern/Projects/SupportChatbot/SupportChatbot.API/obj/Debug/net9.0/ref/SupportChatbot.API.dll
-/Users/dev/Desktop/Intern/Projects/SupportChatbot/SupportChatbot.API/bin/Debug/net9.0/BCrypt.Net-Next.dll
