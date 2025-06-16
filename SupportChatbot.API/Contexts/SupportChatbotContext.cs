@@ -1,11 +1,16 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using SupportChatbot.API.Models;
 
 namespace SupportChatbot.API.Contexts
 {
     public class SupportChatbotContext : DbContext
     {
-        public SupportChatbotContext(DbContextOptions<SupportChatbotContext> options) : base(options) { }
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        public SupportChatbotContext(DbContextOptions<SupportChatbotContext> options, IHttpContextAccessor httpContextAccessor) : base(options)
+        {
+            _httpContextAccessor = httpContextAccessor;
+        }
 
         public DbSet<User> Users { get; set; }
         public DbSet<ChatSession> ChatSessions { get; set; }
@@ -43,6 +48,64 @@ namespace SupportChatbot.API.Contexts
                 .WithMany()
                 .HasForeignKey(rt => rt.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+        }
+
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            var auditEntries = new List<AuditLog>();
+
+            foreach (var entry in ChangeTracker.Entries())
+            {
+                if (entry.Entity is AuditLog || entry.State == EntityState.Detached || entry.State == EntityState.Unchanged)
+                    continue;
+
+                var auditLog = new AuditLog
+                {
+                    TableName = entry.Metadata.GetTableName() ?? string.Empty,
+                    Action = entry.State.ToString(),
+                    Timestamp = DateTime.UtcNow,
+                    UserId = GetCurrentUserId()
+                };
+
+                if (entry.State == EntityState.Added)
+                {
+                    auditLog.NewValue = SerializeValues(entry.CurrentValues);
+                }
+                else if (entry.State == EntityState.Deleted)
+                {
+                    auditLog.OldValue = SerializeValues(entry.OriginalValues);
+                }
+                else if (entry.State == EntityState.Modified)
+                {
+                    auditLog.OldValue = SerializeValues(entry.GetDatabaseValues());
+                    auditLog.NewValue = SerializeValues(entry.CurrentValues);
+                }
+
+                auditEntries.Add(auditLog);
+            }
+
+            if (auditEntries.Any())
+            {
+                AuditLogs.AddRange(auditEntries);
+            }
+
+            return await base.SaveChangesAsync(cancellationToken);
+        }
+
+        private string SerializeValues(PropertyValues? values)
+        {
+            if (values == null) return string.Empty;
+
+            var dict = values.Properties.ToDictionary(
+                p => p.Name,
+                p => values[p]?.ToString()
+            );
+
+            return System.Text.Json.JsonSerializer.Serialize(dict);
+        }
+        private string GetCurrentUserId()
+        {
+            return _httpContextAccessor.HttpContext?.User?.FindFirst("sub")?.Value ?? "System";
         }
     }
 }
